@@ -27,28 +27,28 @@ eldertable/
 
 ### Concepts
 
-| Concept | Description |
-|---------|-------------|
-| **World** | A campaign/setting. Every table session lives inside a world. |
-| **Scene** | A map or encounter. One scene is "active" at a time. |
-| **Actor** | A character, NPC, or monster (stored as a Document). |
-| **Item** | A weapon, spell, feat, or equipment piece. |
-| **Journal** | Notes, handouts, and lore entries. |
-| **Compendium** | Reusable content packs (monsters, items, spells). |
-| **System** | A game-rule plugin (generic-d20, d100, dice-pool…). |
-| **Module** | An optional extension (combat tracker, fog-of-war…). |
-| **Macro** | A one-click command or dice expression in the macro bar. |
+| Concept        | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| **World**      | A campaign/setting. Every table session lives inside a world. |
+| **Scene**      | A map or encounter. One scene is "active" at a time.          |
+| **Actor**      | A character, NPC, or monster (stored as a Document).          |
+| **Item**       | A weapon, spell, feat, or equipment piece.                    |
+| **Journal**    | Notes, handouts, and lore entries.                            |
+| **Compendium** | Reusable content packs (monsters, items, spells).             |
+| **System**     | A game-rule plugin (generic-d20, d100, dice-pool…).           |
+| **Module**     | An optional extension (combat tracker, fog-of-war…).          |
+| **Macro**      | A one-click command or dice expression in the macro bar.      |
 
 ---
 
 ## Prerequisites
 
-| Tool | Version |
-|------|---------|
-| Node.js | 20+ |
-| pnpm | 9+ |
-| Docker & Docker Compose | any recent |
-| PostgreSQL | via Docker (automatic) |
+| Tool                    | Version                |
+| ----------------------- | ---------------------- |
+| Node.js                 | 20+                    |
+| pnpm                    | 9+                     |
+| Docker & Docker Compose | any recent             |
+| PostgreSQL              | via Docker (automatic) |
 
 ---
 
@@ -84,11 +84,11 @@ pnpm dev
 
 This starts three processes in parallel:
 
-| Process | URL |
-|---------|-----|
-| Frontend (Vite) | http://localhost:5173 |
-| API (NestJS) | http://localhost:3001 |
-| Discord Bot | (no HTTP, connects to Discord gateway) |
+| Process         | URL                                    |
+| --------------- | -------------------------------------- |
+| Frontend (Vite) | http://localhost:5173                  |
+| API (NestJS)    | http://localhost:3001                  |
+| Discord Bot     | (no HTTP, connects to Discord gateway) |
 
 ---
 
@@ -127,13 +127,13 @@ pnpm --filter @eldertable/discord-bot run deploy-commands
 
 ### Discord Bot Commands
 
-| Command | Description |
-|---------|-------------|
+| Command              | Description                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
 | `/roll <expression>` | Roll dice. Sends result to VTT if channel is bound. Examples: `1d20`, `2d6+3`, `4d6dl1`, `3d10>=6` |
-| `/session link` | Get the table link for this channel |
-| `/session start` | Announce session start and share the table link |
-| `/scene current` | Show info about the active scene |
-| `/help` | Show all commands |
+| `/session link`      | Get the table link for this channel                                                                |
+| `/session start`     | Announce session start and share the table link                                                    |
+| `/scene current`     | Show info about the active scene                                                                   |
+| `/help`              | Show all commands                                                                                  |
 
 ### Linking a World to Discord
 
@@ -153,17 +153,17 @@ After linking, `/roll` in that channel will appear in the VTT roll log, and `/se
 
 Supported expressions:
 
-| Expression | Meaning |
-|-----------|---------|
-| `1d20` | Roll 1 twenty-sided die |
-| `1d20+5` | Roll 1d20 and add 5 |
-| `2d6` | Roll 2 six-sided dice |
-| `4d6dl1` | Roll 4d6, drop lowest 1 |
-| `2d20kh1` | Roll 2d20, keep highest (Advantage) |
-| `2d20kl1` | Roll 2d20, keep lowest (Disadvantage) |
-| `1d100` | Percentile roll |
-| `3d10>=6` | Dice pool — count dice ≥ 6 as successes |
-| `1d20+1d4+3` | Complex expression with multiple terms |
+| Expression   | Meaning                                 |
+| ------------ | --------------------------------------- |
+| `1d20`       | Roll 1 twenty-sided die                 |
+| `1d20+5`     | Roll 1d20 and add 5                     |
+| `2d6`        | Roll 2 six-sided dice                   |
+| `4d6dl1`     | Roll 4d6, drop lowest 1                 |
+| `2d20kh1`    | Roll 2d20, keep highest (Advantage)     |
+| `2d20kl1`    | Roll 2d20, keep lowest (Disadvantage)   |
+| `1d100`      | Percentile roll                         |
+| `3d10>=6`    | Dice pool — count dice ≥ 6 as successes |
+| `1d20+1d4+3` | Complex expression with multiple terms  |
 
 ---
 
@@ -230,45 +230,46 @@ Connect to `ws://localhost:3001` with Socket.IO.
 
 ### Client → Server
 
-| Event | Payload |
-|-------|---------|
-| `world:join` | `{ worldId, userId }` |
-| `world:leave` | `{ worldId }` |
-| `chat:send` | `{ worldId, userId, speaker, content, type }` |
-| `roll:create` | `{ worldId, userId, expression, result, label? }` |
-| `token:move` | `{ worldId, sceneId, tokenId, x, y, userId }` |
-| `scene:activate` | `{ worldId, sceneId }` |
-| `combat:start` | `{ worldId, sceneId, combatants }` |
-| `combat:nextTurn` | `{ worldId, round, turn, combatantId }` |
+| Event             | Payload                                           |
+| ----------------- | ------------------------------------------------- |
+| `world:join`      | `{ worldId, userId }`                             |
+| `world:leave`     | `{ worldId }`                                     |
+| `chat:send`       | `{ worldId, userId, speaker, content, type }`     |
+| `roll:create`     | `{ worldId, userId, expression, result, label? }` |
+| `token:move`      | `{ worldId, sceneId, tokenId, x, y, userId }`     |
+| `scene:activate`  | `{ worldId, sceneId }`                            |
+| `combat:start`    | `{ worldId, sceneId, combatants }`                |
+| `combat:nextTurn` | `{ worldId, round, turn, combatantId }`           |
 
 ### Server → Client
 
-| Event | Description |
-|-------|-------------|
-| `chat:message` | New chat message broadcast |
-| `roll:create` | Dice roll broadcast |
+| Event                   | Description                    |
+| ----------------------- | ------------------------------ |
+| `chat:message`          | New chat message broadcast     |
+| `roll:create`           | Dice roll broadcast            |
 | `discord:roll-received` | Roll received from Discord bot |
-| `token:move` | Token position update |
-| `scene:activate` | Active scene changed |
-| `combat:start` | Combat initiated |
-| `combat:nextTurn` | Turn advanced |
-| `world:userJoined` | Player connected |
-| `world:userLeft` | Player disconnected |
+| `token:move`            | Token position update          |
+| `scene:activate`        | Active scene changed           |
+| `combat:start`          | Combat initiated               |
+| `combat:nextTurn`       | Turn advanced                  |
+| `world:userJoined`      | Player connected               |
+| `world:userLeft`        | Player disconnected            |
 
 ---
 
 ## Game Systems
 
 Systems are defined in `content/systems/`. Each system has:
+
 - `system.json` — metadata, actor/item types, attributes
 - `template.json` — default data structure for new actors/items
 
-| System ID | Description |
-|-----------|-------------|
-| `generic-d20` | d20-based fantasy (D&D-compatible structure) |
-| `generic-d100` | Percentile system (investigation/horror) |
-| `dice-pool` | Pool system counting successes (WoD-style) |
-| `dnd5e-srd` | Placeholder for D&D 5e SRD structure |
+| System ID      | Description                                  |
+| -------------- | -------------------------------------------- |
+| `generic-d20`  | d20-based fantasy (D&D-compatible structure) |
+| `generic-d100` | Percentile system (investigation/horror)     |
+| `dice-pool`    | Pool system counting successes (WoD-style)   |
+| `dnd5e-srd`    | Placeholder for D&D 5e SRD structure         |
 
 ---
 
@@ -276,13 +277,13 @@ Systems are defined in `content/systems/`. Each system has:
 
 Optional extensions in `content/modules/`:
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| `combat-tracker` | Active (MVP) | Initiative tracker |
-| `discord-bridge` | Active (MVP) | Discord ↔ VTT sync |
-| `fog-of-war` | Planned | Dynamic fog of war |
-| `animated-dice` | Planned | 3D dice animations |
-| `journal-enhancer` | Planned | Rich text + image handouts |
+| Module             | Status       | Description                |
+| ------------------ | ------------ | -------------------------- |
+| `combat-tracker`   | Active (MVP) | Initiative tracker         |
+| `discord-bridge`   | Active (MVP) | Discord ↔ VTT sync         |
+| `fog-of-war`       | Planned      | Dynamic fog of war         |
+| `animated-dice`    | Planned      | 3D dice animations         |
+| `journal-enhancer` | Planned      | Rich text + image handouts |
 
 ---
 
