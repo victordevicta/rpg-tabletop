@@ -1,0 +1,16 @@
+{
+  "id": "dice-pool",
+  "label": "Dice Pool",
+  "version": "1.0.0",
+  "description": "Pool-based system counting successes on a target number",
+  "author": "Eldertable",
+  "defaultRoll": "5d10>=6",
+  "actorTypes": ["character", "npc"],
+  "itemTypes": ["power", "discipline", "equipment"],
+  "successThreshold": 6,
+  "attributes": {
+    "hp": { "label": "Health", "type": "resource" },
+    "willpower": { "label": "Willpower", "type": "resource" },
+    "essence": { "label": "Essence", "type": "resource" }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "Actor": {
+    "character": {
+      "biography": "",
+      "attributes": {
+        "hp": { "value": 10, "max": 10, "temp": 0 },
+        "ac": 10,
+        "initiative": 0,
+        "speed": 30
+      },
+      "abilities": {
+        "str": { "value": 10, "mod": 0, "save": 0 },
+        "dex": { "value": 10, "mod": 0, "save": 0 },
+        "con": { "value": 10, "mod": 0, "save": 0 },
+        "int": { "value": 10, "mod": 0, "save": 0 },
+        "wis": { "value": 10, "mod": 0, "save": 0 },
+        "cha": { "value": 10, "mod": 0, "save": 0 }
+      },
+      "skills": {},
+      "proficiencyBonus": 2,
+      "level": 1,
+      "experiencePoints": 0
+    },
+    "npc": {
+      "biography": "",
+      "attributes": {
+        "hp": { "value": 5, "max": 5 },
+        "ac": 10,
+        "speed": 30
+      },
+      "cr": "0",
+      "type": "humanoid"
+    }
+  },
+  "Item": {
+    "weapon": {
+      "description": "",
+      "damage": "1d6",
+      "damageType": "slashing",
+      "attackBonus": 0,
+      "range": "5 ft",
+      "properties": []
+    },
+    "spell": {
+      "description": "",
+      "level": 1,
+      "school": "evocation",
+      "castingTime": "1 action",
+      "range": "60 ft",
+      "components": "V, S",
+      "duration": "Instantaneous",
+      "damage": "",
+      "saveAbility": ""
+    }
+  }
+}

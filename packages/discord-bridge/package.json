@@ -1,0 +1,13 @@
+{
+  "name": "@eldertable/discord-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@eldertable/shared": "workspace:*",
+    "@eldertable/dice-engine": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.4.5" }
+}

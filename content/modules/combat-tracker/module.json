@@ -1,0 +1,10 @@
+{
+  "id": "combat-tracker",
+  "label": "Combat Tracker",
+  "version": "1.0.0",
+  "description": "Initiative tracker with turn order management",
+  "author": "Eldertable",
+  "scope": "world",
+  "hooks": ["combat:start", "combat:nextTurn", "combat:end"],
+  "compatibility": { "minimum": "0.1.0" }
+}

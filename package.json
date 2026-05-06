@@ -1,0 +1,23 @@
+{
+  "name": "eldertable",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @eldertable/api run db:generate",
+    "db:push": "pnpm --filter @eldertable/api run db:push",
+    "db:migrate": "pnpm --filter @eldertable/api run db:migrate",
+    "db:studio": "pnpm --filter @eldertable/api run db:studio",
+    "db:seed": "pnpm --filter @eldertable/api run db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "setup": "pnpm install && pnpm docker:up && pnpm db:generate && pnpm db:push"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

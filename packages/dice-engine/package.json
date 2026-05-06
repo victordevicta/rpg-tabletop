@@ -1,0 +1,19 @@
+{
+  "name": "@eldertable/dice-engine",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.cjs.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@eldertable/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

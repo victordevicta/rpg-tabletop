@@ -1,0 +1,24 @@
+{
+  "id": "generic-d20",
+  "label": "Generic d20",
+  "version": "1.0.0",
+  "description": "A simplified d20-based system compatible with most fantasy RPGs",
+  "author": "Eldertable",
+  "defaultRoll": "1d20",
+  "actorTypes": ["character", "npc", "monster"],
+  "itemTypes": ["weapon", "armor", "spell", "equipment", "consumable", "feat"],
+  "attributes": {
+    "hp": { "label": "Hit Points", "type": "resource" },
+    "ac": { "label": "Armor Class", "type": "number", "default": 10 },
+    "initiative": { "label": "Initiative", "type": "number", "default": 0 },
+    "speed": { "label": "Speed (ft)", "type": "number", "default": 30 }
+  },
+  "abilities": {
+    "str": "Strength",
+    "dex": "Dexterity",
+    "con": "Constitution",
+    "int": "Intelligence",
+    "wis": "Wisdom",
+    "cha": "Charisma"
+  }
+}

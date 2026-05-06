@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "paths": {
+      "@eldertable/shared": ["../../packages/shared/src"],
+      "@eldertable/dice-engine": ["../../packages/dice-engine/src"],
+      "@eldertable/discord-bridge": ["../../packages/discord-bridge/src"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "@eldertable/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon",
+    "build": "nest build",
+    "start": "node dist/apps/api/src/main",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "@eldertable/dice-engine": "workspace:*",
+    "@eldertable/discord-bridge": "workspace:*",
+    "@eldertable/shared": "workspace:*",
+    "@nestjs/common": "^10.3.10",
+    "@nestjs/config": "^3.2.2",
+    "@nestjs/core": "^10.3.10",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/passport": "^10.0.3",
+    "@nestjs/platform-express": "^10.3.10",
+    "@nestjs/platform-socket.io": "^10.3.10",
+    "@nestjs/websockets": "^10.3.10",
+    "@prisma/client": "^5.16.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.4",
+    "@nestjs/schematics": "^10.1.3",
+    "@nestjs/testing": "^11.1.19",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.14.10",
+    "@types/passport-jwt": "^4.0.1",
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^5.16.1",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  }
+}

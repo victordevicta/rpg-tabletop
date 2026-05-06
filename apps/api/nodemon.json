@@ -1,0 +1,7 @@
+{
+  "watch": ["src", "../../.env", ".env"],
+  "ext": "ts,json",
+  "ignore": ["**/*.spec.ts", "dist/**", "node_modules/**"],
+  "exec": "nest start",
+  "delay": 1000
+}

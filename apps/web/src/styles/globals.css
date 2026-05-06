@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-obsidian-600;
+  }
+  body {
+    @apply bg-obsidian-950 text-gray-100 font-body antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+  }
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-obsidian-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-obsidian-500 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-amber;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-obsidian-800 border border-obsidian-600 rounded-lg;
+  }
+  .panel-header {
+    @apply px-4 py-2 border-b border-obsidian-600 font-display text-amber text-sm font-semibold tracking-wide uppercase;
+  }
+  .btn-primary {
+    @apply bg-amber hover:bg-amber-light text-obsidian-950 font-semibold px-4 py-2 rounded-md transition-colors text-sm;
+  }
+  .btn-ghost {
+    @apply hover:bg-obsidian-700 text-gray-300 hover:text-gray-100 px-3 py-1.5 rounded-md transition-colors text-sm;
+  }
+  .input-dark {
+    @apply bg-obsidian-900 border border-obsidian-600 rounded-md px-3 py-2 text-gray-100 text-sm focus:outline-none focus:border-amber focus:ring-1 focus:ring-amber/30 placeholder:text-gray-500;
+  }
+  .sidebar-item {
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-gray-400 hover:text-gray-100 hover:bg-obsidian-700 transition-colors text-sm cursor-pointer;
+  }
+  .sidebar-item.active {
+    @apply text-amber bg-obsidian-700;
+  }
+  .dice-result {
+    @apply font-mono text-amber-glow font-bold;
+  }
+  .critical-success {
+    @apply text-green-400 font-bold;
+  }
+  .critical-failure {
+    @apply text-red-400 font-bold;
+  }
+}

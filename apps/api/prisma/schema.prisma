@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  discordAccount  DiscordAccount?
+  ownedWorlds     World[]          @relation("WorldOwner")
+  worldMembers    WorldMember[]
+  chatMessages    ChatMessage[]
+  diceRolls       DiceRoll[]
+  macros          Macro[]
+  discordBindings DiscordBinding[]
+}
+
+model DiscordAccount {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  discordId       String   @unique
+  discordUsername String
+  discordAvatar   String?
+  accessToken     String?
+  refreshToken    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model World {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  systemId    String   @default("generic-d20")
+  imageUrl    String?
+  ownerId     String
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner           User             @relation("WorldOwner", fields: [ownerId], references: [id])
+  members         WorldMember[]
+  documents       Document[]
+  chatMessages    ChatMessage[]
+  diceRolls       DiceRoll[]
+  compendiumPacks CompendiumPack[]
+  discordBindings DiscordBinding[]
+}
+
+model WorldMember {
+  id       String   @id @default(cuid())
+  worldId  String
+  userId   String
+  role     String   @default("player")
+  joinedAt DateTime @default(now())
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([worldId, userId])
+}
+
+model DiscordBinding {
+  id               String   @id @default(cuid())
+  worldId          String
+  discordGuildId   String
+  discordChannelId String
+  discordThreadId  String?
+  createdByUserId  String
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  world     World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdByUserId], references: [id])
+
+  @@unique([worldId, discordGuildId])
+}
+
+model Document {
+  id       String   @id @default(cuid())
+  worldId  String
+  type     String
+  name     String
+  systemId String?
+  data     Json     @default("{}")
+  flags    Json     @default("{}")
+  folderId String?
+  sort     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  world    World      @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  folder   Document?  @relation("FolderContents", fields: [folderId], references: [id])
+  children Document[] @relation("FolderContents")
+
+  @@index([worldId, type])
+}
+
+model CompendiumPack {
+  id        String   @id @default(cuid())
+  worldId   String?
+  systemId  String?
+  name      String
+  label     String
+  type      String
+  scope     String   @default("world")
+  data      Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  world World? @relation(fields: [worldId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  worldId   String
+  userId    String?
+  speaker   String   @default("System")
+  content   String
+  type      String   @default("text")
+  flags     Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  world    World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id])
+  diceRoll DiceRoll?
+}
+
+model DiceRoll {
+  id            String   @id @default(cuid())
+  worldId       String
+  userId        String?
+  expression    String
+  result        Json
+  label         String?
+  messageId     String?  @unique
+  fromDiscord   Boolean  @default(false)
+  discordUserId String?
+  createdAt     DateTime @default(now())
+
+  world   World        @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  user    User?        @relation(fields: [userId], references: [id])
+  message ChatMessage? @relation(fields: [messageId], references: [id])
+}
+
+model Macro {
+  id        String   @id @default(cuid())
+  userId    String
+  worldId   String?
+  name      String
+  type      String   @default("script")
+  command   String
+  img       String?
+  scope     String   @default("global")
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id         String   @id @default(cuid())
+  worldId    String?
+  uploaderId String?
+  name       String
+  key        String   @unique
+  url        String
+  mimeType   String
+  size       Int
+  bucket     String   @default("eldertable")
+  createdAt  DateTime @default(now())
+
+  @@index([worldId])
+}

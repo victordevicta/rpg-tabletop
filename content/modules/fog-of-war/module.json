@@ -1,0 +1,10 @@
+{
+  "id": "fog-of-war",
+  "label": "Fog of War",
+  "version": "1.0.0",
+  "description": "Dynamic fog of war with line-of-sight calculation",
+  "author": "Eldertable",
+  "scope": "scene",
+  "hooks": ["scene:activate", "token:move"],
+  "status": "planned"
+}

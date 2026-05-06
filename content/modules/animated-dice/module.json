@@ -1,0 +1,10 @@
+{
+  "id": "animated-dice",
+  "label": "Animated Dice",
+  "version": "1.0.0",
+  "description": "3D dice animation overlay using PixiJS",
+  "author": "Eldertable",
+  "scope": "world",
+  "hooks": ["roll:create"],
+  "status": "planned"
+}

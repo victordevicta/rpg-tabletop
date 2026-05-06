@@ -1,0 +1,22 @@
+export declare const DOCUMENT_TYPES: readonly ["actor", "item", "scene", "journal", "roll-table", "playlist", "macro", "folder"];
+export declare const SYSTEM_IDS: readonly ["generic-d20", "generic-d100", "dice-pool", "dnd5e-srd"];
+export declare const DEFAULT_GRID_SIZE = 64;
+export declare const DEFAULT_SCENE_WIDTH = 4096;
+export declare const DEFAULT_SCENE_HEIGHT = 2560;
+export declare const SOCKET_EVENTS: {
+    readonly WORLD_JOIN: "world:join";
+    readonly WORLD_LEAVE: "world:leave";
+    readonly WORLD_USER_JOINED: "world:userJoined";
+    readonly WORLD_USER_LEFT: "world:userLeft";
+    readonly DOCUMENT_CREATE: "document:create";
+    readonly DOCUMENT_UPDATE: "document:update";
+    readonly DOCUMENT_DELETE: "document:delete";
+    readonly TOKEN_MOVE: "token:move";
+    readonly SCENE_ACTIVATE: "scene:activate";
+    readonly CHAT_SEND: "chat:send";
+    readonly CHAT_MESSAGE: "chat:message";
+    readonly ROLL_CREATE: "roll:create";
+    readonly DISCORD_ROLL_RECEIVED: "discord:roll-received";
+    readonly COMBAT_START: "combat:start";
+    readonly COMBAT_NEXT_TURN: "combat:nextTurn";
+};

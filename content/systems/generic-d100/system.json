@@ -1,0 +1,15 @@
+{
+  "id": "generic-d100",
+  "label": "Generic d100",
+  "version": "1.0.0",
+  "description": "Percentile-based system for investigation and horror games",
+  "author": "Eldertable",
+  "defaultRoll": "1d100",
+  "actorTypes": ["character", "npc"],
+  "itemTypes": ["weapon", "equipment", "skill-book"],
+  "attributes": {
+    "hp": { "label": "Hit Points", "type": "resource" },
+    "sanity": { "label": "Sanity", "type": "resource" },
+    "luck": { "label": "Luck", "type": "number" }
+  }
+}

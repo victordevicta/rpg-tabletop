@@ -1,0 +1,10 @@
+{
+  "id": "discord-bridge",
+  "label": "Discord Bridge",
+  "version": "1.0.0",
+  "description": "Sync dice rolls, session announcements and notifications between Eldertable and Discord",
+  "author": "Eldertable",
+  "scope": "world",
+  "hooks": ["roll:create", "session:start", "chat:send"],
+  "requires": { "discordBot": true }
+}
