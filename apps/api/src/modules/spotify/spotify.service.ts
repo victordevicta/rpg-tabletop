@@ -74,18 +74,23 @@ export class SpotifyService {
   // ── Playlist ──────────────────────────────────────────────────────────────
 
   private async resolvePlaylist(id: string): Promise<ResolvedSpotifySource> {
-    const [meta, itemsData] = await Promise.all([
-      this.spotifyGet(`/playlists/${id}?fields=name,images`),
-      this.spotifyGet(`/playlists/${id}/tracks?limit=20&fields=items(track(id,name,artists,album(images)))`),
-    ]);
+    const meta = await this.spotifyGet(`/playlists/${id}?fields=name,images`);
 
-    const tracks: SpotifyTrack[] = (itemsData.items ?? [])
-      .filter((item: any) => item.track?.id)
-      .map((item: any) => ({
-        id:        item.track.id,
-        title:     `${item.track.name} — ${(item.track.artists ?? []).map((a: any) => a.name).join(', ')}`,
-        thumbnail: item.track.album?.images?.[2]?.url ?? '',
-      }));
+    const tracks: SpotifyTrack[] = [];
+    let path: string | null = `/playlists/${id}/tracks?limit=100`;
+    while (path) {
+      const page: any = await this.spotifyGet(path);
+      tracks.push(
+        ...(page.items ?? [])
+          .filter((item: any) => item.track?.id)
+          .map((item: any) => ({
+            id:        item.track.id,
+            title:     `${item.track.name} — ${(item.track.artists ?? []).map((a: any) => a.name).join(', ')}`,
+            thumbnail: item.track.album?.images?.[2]?.url ?? '',
+          })),
+      );
+      path = page.next ? page.next.replace('https://api.spotify.com/v1', '') : null;
+    }
 
     return {
       sourceProvider: 'spotify',
@@ -102,12 +107,22 @@ export class SpotifyService {
   private async resolveAlbum(id: string): Promise<ResolvedSpotifySource> {
     const album   = await this.spotifyGet(`/albums/${id}`);
     const artists = (album.artists ?? []).map((a: any) => a.name).join(', ');
+    const thumb   = album.images?.[2]?.url ?? '';
 
-    const tracks: SpotifyTrack[] = (album.tracks?.items ?? []).slice(0, 20).map((t: any) => ({
-      id:        t.id,
-      title:     `${t.name} — ${(t.artists ?? []).map((a: any) => a.name).join(', ')}`,
-      thumbnail: album.images?.[2]?.url ?? '',
-    }));
+    const tracks: SpotifyTrack[] = [];
+    let tracksPage: any = album.tracks;
+    while (tracksPage) {
+      tracks.push(
+        ...(tracksPage.items ?? []).map((t: any) => ({
+          id:        t.id,
+          title:     `${t.name} — ${(t.artists ?? []).map((a: any) => a.name).join(', ')}`,
+          thumbnail: thumb,
+        })),
+      );
+      tracksPage = tracksPage.next
+        ? await this.spotifyGet(tracksPage.next.replace('https://api.spotify.com/v1', ''))
+        : null;
+    }
 
     return {
       sourceProvider: 'spotify',
@@ -146,7 +161,10 @@ export class SpotifyService {
   private async spotifyGet(path: string): Promise<any> {
     const token = await this.getToken();
     const res   = await fetch(`${SPOTIFY_API}${path}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new BadRequestException(`Spotify API error: ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new BadRequestException(`Spotify API error: ${res.status}${body ? ` — ${body}` : ''}`);
+    }
     return res.json();
   }
 }

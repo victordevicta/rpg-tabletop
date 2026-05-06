@@ -14,8 +14,14 @@ import {
   ChevronUp,
   X,
   Folder,
+  Shuffle,
 } from "lucide-react";
 import { api } from "../../lib/api";
+import {
+  getSpotifyToken,
+  startSpotifyAuth,
+  resolveSpotifyUrl,
+} from "../../lib/spotify";
 import { useTableStore } from "../../store/useTableStore";
 import {
   usePlaylistStore,
@@ -94,42 +100,57 @@ function loadSpotifyScript(): Promise<any> {
 function AddSourceModal({
   onClose,
   onAdd,
+  initialUrl = "",
 }: {
   onClose: () => void;
   onAdd: (s: PlaylistSource) => void;
+  initialUrl?: string;
 }) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<PlaylistSource | null>(null);
   const [error, setError] = useState("");
   const worldId = useTableStore((s) => s.worldId);
 
-  async function resolve() {
-    if (!url.trim()) return;
+  async function resolve(target = url) {
+    const raw = target.trim();
+    if (!raw) return;
     setLoading(true);
     setError("");
     setPreview(null);
     try {
       const isSpotify =
-        url.includes("spotify.com") || url.startsWith("spotify:");
-      const endpoint = isSpotify
-        ? "/api/spotify/resolve"
-        : "/api/youtube/resolve";
-      const { data } = await api.get(endpoint, { params: { url } });
-      setPreview({
-        ...data,
-        docId: "",
-        sourceProvider: isSpotify ? "spotify" : "youtube",
-      });
+        raw.includes("spotify.com") || raw.startsWith("spotify:");
+      if (isSpotify) {
+        const token = getSpotifyToken();
+        if (!token) {
+          await startSpotifyAuth(raw);
+          return; // page redirects to Spotify — execution stops here
+        }
+        const data = await resolveSpotifyUrl(raw, token);
+        setPreview({ ...data, docId: "", sourceProvider: "spotify" });
+      } else {
+        const { data } = await api.get("/api/youtube/resolve", {
+          params: { url: raw },
+        });
+        setPreview({ ...data, docId: "", sourceProvider: "youtube" });
+      }
     } catch (e: any) {
       setError(
         e?.response?.data?.message ??
+          e?.message ??
           "URL inválida ou credenciais não configuradas",
       );
     } finally {
       setLoading(false);
     }
   }
+
+  // Auto-resolve when opened after Spotify OAuth redirect (token already exists)
+  useEffect(() => {
+    if (initialUrl && getSpotifyToken()) resolve(initialUrl);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function save() {
     if (!preview || !worldId) return;
@@ -174,10 +195,10 @@ function AddSourceModal({
             placeholder="URL do YouTube ou Spotify"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && resolve()}
+            onKeyDown={(e) => e.key === "Enter" && resolve(url)}
           />
           <button
-            onClick={resolve}
+            onClick={() => resolve(url)}
             disabled={loading || !url.trim()}
             className="btn-primary px-3 disabled:opacity-50"
           >
@@ -292,13 +313,16 @@ export default function PlaylistPanel() {
   const spotifyApiRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const spotifyControllerRef = useRef<any>(null);
-  const ytLoadingRef = useRef(false); // true while loadVideoById is in-flight
+  const ytLoadingRef      = useRef(false); // true while loadVideoById is in-flight
   const spotifyLoadingRef = useRef(false); // true while loadUri is in-flight
+  const shuffleQueueRef   = useRef<number[]>([]); // shuffled track indices for active source
+  const shufflePosRef     = useRef(0);             // current position in shuffle queue
 
   const [ytReady, setYtReady] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
   const [spotifyReady, setSpotifyReady] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
   const [trackOpen, setTrackOpen] = useState<string | null>(null);
   const [loadingDocs, setLoadingDocs] = useState(true);
 
@@ -309,17 +333,63 @@ export default function PlaylistPanel() {
     trackIndex,
     isPlaying,
     volume,
+    isShuffled,
     setSources,
     addSource,
     removeSource,
     play,
     pause,
     resume,
+    setTrack,
     nextTrack,
     prevTrack,
     setVolume,
     setIsPlaying,
+    toggleShuffle,
   } = usePlaylistStore();
+
+  // ── Shuffle helpers ───────────────────────────────────────────────────────
+  function buildShuffleQueue(src: PlaylistSource, startIdx: number) {
+    const others = src.tracks.map((_, i) => i).filter((i) => i !== startIdx);
+    for (let i = others.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [others[i], others[j]] = [others[j], others[i]];
+    }
+    shuffleQueueRef.current = [startIdx, ...others];
+    shufflePosRef.current   = 0;
+  }
+
+  function shuffleNext(): number {
+    shufflePosRef.current = (shufflePosRef.current + 1) % shuffleQueueRef.current.length;
+    return shuffleQueueRef.current[shufflePosRef.current];
+  }
+
+  function shufflePrev(): number {
+    shufflePosRef.current =
+      (shufflePosRef.current - 1 + shuffleQueueRef.current.length) % shuffleQueueRef.current.length;
+    return shuffleQueueRef.current[shufflePosRef.current];
+  }
+
+  // ── Rebuild shuffle queue when toggle changes ─────────────────────────────
+  useEffect(() => {
+    if (isShuffled && activeSource) {
+      buildShuffleQueue(activeSource, trackIndex);
+    } else {
+      shuffleQueueRef.current = [];
+      shufflePosRef.current   = 0;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isShuffled]);
+
+  // ── Pick up pending Spotify URL after OAuth redirect ─────────────────────
+  useEffect(() => {
+    const url = sessionStorage.getItem('sp_return_url') ?? '';
+    if (url) {
+      sessionStorage.removeItem('sp_return_url');
+      setPendingUrl(url);
+      setShowAdd(true);
+    }
+  }, []);
 
   // ── Load saved playlists ──────────────────────────────────────────────────
   useEffect(() => {
@@ -370,13 +440,17 @@ export default function PlaylistPanel() {
             // Only update state on "natural" pauses, not mid-transition pauses
             setIsPlaying(false);
           } else if (e.data === 0) {
-            const nextIdx = (store.trackIndex + 1) % activeSrc.tracks.length;
-            store.nextTrack();
-            const next = activeSrc.tracks[nextIdx];
-            if (next) {
-              ytLoadingRef.current = true;
-              playerRef.current?.loadVideoById(next.id);
+            let nextActualIdx: number;
+            if (store.isShuffled && shuffleQueueRef.current.length > 0) {
+              shufflePosRef.current = (shufflePosRef.current + 1) % shuffleQueueRef.current.length;
+              nextActualIdx = shuffleQueueRef.current[shufflePosRef.current];
+              store.setTrack(nextActualIdx);
+            } else {
+              nextActualIdx = (store.trackIndex + 1) % activeSrc.tracks.length;
+              store.nextTrack();
             }
+            const next = activeSrc.tracks[nextActualIdx];
+            if (next) { ytLoadingRef.current = true; playerRef.current?.loadVideoById(next.id); }
           }
         },
       },
@@ -461,12 +535,12 @@ export default function PlaylistPanel() {
         audioRef.current?.pause();
     }
     play(src.docId, idx);
+    if (isShuffled) buildShuffleQueue(src, idx);
 
     if (src.sourceProvider === "spotify") {
-      const uri =
-        idx > 0 && src.tracks[idx]
-          ? `spotify:track:${src.tracks[idx].id}`
-          : src.spotifyUri!;
+      const uri = src.tracks[idx]
+        ? `spotify:track:${src.tracks[idx].id}`
+        : src.spotifyUri!;
       if (spotifyControllerRef.current) {
         spotifyLoadingRef.current = true;
         spotifyControllerRef.current.loadUri(uri);
@@ -531,8 +605,14 @@ export default function PlaylistPanel() {
 
   function handleNext() {
     if (!activeSource) return;
-    const nextIdx = (trackIndex + 1) % activeSource.tracks.length;
-    nextTrack();
+    let nextIdx: number;
+    if (isShuffled && shuffleQueueRef.current.length > 0) {
+      nextIdx = shuffleNext();
+      setTrack(nextIdx);
+    } else {
+      nextIdx = (trackIndex + 1) % activeSource.tracks.length;
+      nextTrack();
+    }
     const track = activeSource.tracks[nextIdx];
     if (!track) return;
     if (isLocalActive) {
@@ -553,10 +633,14 @@ export default function PlaylistPanel() {
 
   function handlePrev() {
     if (!activeSource) return;
-    const prevIdx =
-      (trackIndex - 1 + activeSource.tracks.length) %
-      activeSource.tracks.length;
-    prevTrack();
+    let prevIdx: number;
+    if (isShuffled && shuffleQueueRef.current.length > 0) {
+      prevIdx = shufflePrev();
+      setTrack(prevIdx);
+    } else {
+      prevIdx = (trackIndex - 1 + activeSource.tracks.length) % activeSource.tracks.length;
+      prevTrack();
+    }
     const track = activeSource.tracks[prevIdx];
     if (!track) return;
     if (isLocalActive) {
@@ -577,10 +661,17 @@ export default function PlaylistPanel() {
 
   function handleLocalEnded() {
     const store = usePlaylistStore.getState();
-    const src = store.sources.find((s) => s.docId === store.activeId);
+    const src   = store.sources.find((s) => s.docId === store.activeId);
     if (!src || src.sourceProvider !== "local") return;
-    const nextIdx = (store.trackIndex + 1) % src.tracks.length;
-    store.nextTrack();
+    let nextIdx: number;
+    if (store.isShuffled && shuffleQueueRef.current.length > 0) {
+      shufflePosRef.current = (shufflePosRef.current + 1) % shuffleQueueRef.current.length;
+      nextIdx = shuffleQueueRef.current[shufflePosRef.current];
+      store.setTrack(nextIdx);
+    } else {
+      nextIdx = (store.trackIndex + 1) % src.tracks.length;
+      store.nextTrack();
+    }
     const track = src.tracks[nextIdx];
     if (track?.file && audioRef.current) {
       const prev = audioRef.current.src;
@@ -783,7 +874,11 @@ export default function PlaylistPanel() {
       />
 
       {showAdd && (
-        <AddSourceModal onClose={() => setShowAdd(false)} onAdd={addSource} />
+        <AddSourceModal
+          onClose={() => { setShowAdd(false); setPendingUrl(''); }}
+          onAdd={addSource}
+          initialUrl={pendingUrl}
+        />
       )}
 
       {loadingDocs ? (
@@ -890,6 +985,13 @@ export default function PlaylistPanel() {
                 className="text-gray-500 hover:text-gray-200 disabled:opacity-30 p-1"
               >
                 <SkipForward size={13} />
+              </button>
+              <button
+                onClick={toggleShuffle}
+                className={`p-1 ${isShuffled ? "text-amber" : "text-gray-600 hover:text-gray-200"}`}
+                title={isShuffled ? "Shuffle ativo" : "Shuffle inativo"}
+              >
+                <Shuffle size={13} />
               </button>
               <div className="flex items-center gap-1 ml-auto">
                 <Volume2 size={11} className="text-gray-500 flex-shrink-0" />

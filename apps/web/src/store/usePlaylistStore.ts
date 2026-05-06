@@ -25,6 +25,7 @@ interface PlaylistState {
   trackIndex:    number;
   isPlaying:     boolean;
   volume:        number;          // 0-100
+  isShuffled:    boolean;
 
   setSources:    (sources: PlaylistSource[]) => void;
   addSource:     (s: PlaylistSource) => void;
@@ -37,6 +38,7 @@ interface PlaylistState {
   prevTrack:     () => void;
   setVolume:     (v: number) => void;
   setIsPlaying:  (v: boolean) => void;
+  toggleShuffle: () => void;
 }
 
 export const usePlaylistStore = create<PlaylistState>()(
@@ -47,6 +49,7 @@ export const usePlaylistStore = create<PlaylistState>()(
       trackIndex: 0,
       isPlaying:  false,
       volume:     80,
+      isShuffled: false,
 
       setSources:   (sources) => set({ sources }),
       addSource:    (s) => set((st) => ({ sources: [...st.sources, s] })),
@@ -77,11 +80,12 @@ export const usePlaylistStore = create<PlaylistState>()(
         set({ trackIndex: (trackIndex - 1 + src.tracks.length) % src.tracks.length, isPlaying: true });
       },
 
-      setVolume: (v) => set({ volume: v }),
+      setVolume:     (v) => set({ volume: v }),
+      toggleShuffle: () => set((st) => ({ isShuffled: !st.isShuffled })),
     }),
     {
-      name:    'playlist-prefs',
-      partialize: (state) => ({ volume: state.volume }),
+      name:       'playlist-prefs',
+      partialize: (state) => ({ volume: state.volume, isShuffled: state.isShuffled }),
     },
   ),
 );

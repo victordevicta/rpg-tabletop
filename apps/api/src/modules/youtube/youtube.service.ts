@@ -70,7 +70,7 @@ export class YoutubeService {
   // ── Playlist ──────────────────────────────────────────────────────────────
 
   private async resolvePlaylist(id: string): Promise<ResolvedYoutubeSource> {
-    const [playlistRes, itemsRes] = await Promise.all([
+    const [playlistRes, firstPage] = await Promise.all([
       this.ytFetch(`/playlists?part=snippet&id=${id}&key=${this.apiKey}`),
       this.ytFetch(`/playlistItems?part=snippet&playlistId=${id}&maxResults=50&key=${this.apiKey}`),
     ]);
@@ -78,13 +78,25 @@ export class YoutubeService {
     const playlist = playlistRes.items?.[0];
     if (!playlist) throw new BadRequestException('Playlist não encontrada');
 
-    const tracks: YoutubeTrack[] = (itemsRes.items ?? [])
-      .filter((item: any) => item.snippet?.resourceId?.kind === 'youtube#video')
-      .map((item: any) => ({
+    const toTrack = (item: any): YoutubeTrack | null => {
+      if (item.snippet?.resourceId?.kind !== 'youtube#video') return null;
+      return {
         id:        item.snippet.resourceId.videoId,
         title:     item.snippet.title,
         thumbnail: bestThumb(item.snippet.thumbnails),
-      }));
+      };
+    };
+
+    const tracks: YoutubeTrack[] = (firstPage.items ?? []).map(toTrack).filter(Boolean) as YoutubeTrack[];
+
+    let nextPageToken: string | undefined = firstPage.nextPageToken;
+    while (nextPageToken) {
+      const page = await this.ytFetch(
+        `/playlistItems?part=snippet&playlistId=${id}&maxResults=50&pageToken=${nextPageToken}&key=${this.apiKey}`,
+      );
+      tracks.push(...((page.items ?? []).map(toTrack).filter(Boolean) as YoutubeTrack[]));
+      nextPageToken = page.nextPageToken;
+    }
 
     return {
       sourceType: 'playlist',

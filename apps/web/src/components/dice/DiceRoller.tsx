@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Dices, ChevronUp, ChevronDown, Settings, Check, Pipette } from 'lucide-react';
 import { roll, rollWithPrerolled } from '@eldertable/dice-engine';
 import type { RollResult } from '@eldertable/shared';
@@ -55,6 +56,16 @@ const SKINS: Skin[] = [
   { id: 'galaxy',    name: 'Galáxia',      color: '#2e1065', light: 0.85, preview: 'linear-gradient(135deg,#0d001a,#7c3aed,#2563eb)' },
   { id: 'custom',    name: 'Personalizado', color: '#ffffff', light: 1.0,  preview: 'custom' },
 ];
+
+// ── Critical easter-egg overlay ───────────────────────────────────────────────
+
+const CRIT_SRCS: Record<'success' | 'failure', string> = {
+  success: '/assets/critical-success.mp4',  // troque por .gif se quiser usar GIF
+  failure: '/assets/critical-failure.mp4',  // troque por .gif se quiser usar GIF
+};
+const CRIT_GIF_DURATION_MS = 3000; // duração exibida quando o arquivo for .gif
+
+type CritState = { type: 'success' | 'failure'; visible: boolean } | null;
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
@@ -132,7 +143,9 @@ export default function DiceRoller() {
   const [advSides,     setAdvSides]     = useState(20);
   const [advMod,       setAdvMod]       = useState(0);
   const [currentExpr,  setCurrentExpr]  = useState('');
-  const boxRef = useRef<any>(null);
+  const boxRef      = useRef<any>(null);
+  const critTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [crit, setCrit] = useState<CritState>(null);
 
   const rollLog  = useTableStore(s => s.rollLog);
   const worldId  = useTableStore(s => s.worldId);
@@ -196,12 +209,30 @@ export default function DiceRoller() {
     } catch { return []; }
   }
 
+  // ── Critical overlay helpers ──────────────────────────────────────────────
+  function showCrit(type: 'success' | 'failure') {
+    if (critTimerRef.current) clearTimeout(critTimerRef.current);
+    setCrit({ type, visible: false });
+    // double-rAF so the initial opacity:0 is painted before transitioning to 1
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        setCrit(prev => prev ? { ...prev, visible: true } : null),
+      ),
+    );
+  }
+
+  function hideCrit() {
+    setCrit(prev => prev ? { ...prev, visible: false } : null);
+    critTimerRef.current = setTimeout(() => setCrit(null), 600);
+  }
+
   // ── Commit ────────────────────────────────────────────────────────────────
   function commit(expression: string, total: number, formula: string, critical?: 'success' | 'failure') {
     const speaker = gmRoll ? `[GM] ${user?.name ?? 'GM'}` : (user?.name ?? 'You');
     addRoll({ id: `local-${Date.now()}`, expression, result: { total, formula, critical }, speaker, createdAt: new Date().toISOString() });
     if (worldId && user)
       getSocket().emit('roll:create', { worldId, userId: user.id, expression, result: { expression, total, formula, critical, timestamp: Date.now(), terms: [] } });
+    if (critical) showCrit(critical);
   }
 
   // ── Roll handlers ─────────────────────────────────────────────────────────
@@ -269,11 +300,55 @@ export default function DiceRoller() {
 
   return (
     <>
-      {/* 3D overlay */}
+      {/* ── Critical easter-egg overlay ── */}
+      {crit && createPortal(
+        <div
+          aria-hidden="true"
+          style={{
+            position:       'fixed',
+            inset:          0,
+            zIndex:         300,
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'center',
+            pointerEvents:  'none',
+            opacity:        crit.visible ? 1 : 0,
+            transition:     'opacity 0.5s ease',
+          }}
+        >
+          {/\.gif$/i.test(CRIT_SRCS[crit.type]) ? (
+            <img
+              src={CRIT_SRCS[crit.type]}
+              alt=""
+              style={{ width: 360, borderRadius: 16, boxShadow: '0 0 60px rgba(0,0,0,0.9)' }}
+              onLoad={() => {
+                if (critTimerRef.current) clearTimeout(critTimerRef.current);
+                critTimerRef.current = setTimeout(hideCrit, CRIT_GIF_DURATION_MS);
+              }}
+            />
+          ) : (
+            <video
+              key={crit.type}
+              autoPlay
+              muted
+              playsInline
+              onEnded={hideCrit}
+              style={{ width: 360, borderRadius: 16, boxShadow: '0 0 60px rgba(0,0,0,0.9)' }}
+            >
+              <source src={CRIT_SRCS[crit.type]} />
+            </video>
+          )}
+        </div>,
+        document.body,
+      )}
+
+      {/* 3D overlay — stays visible during crit video so the dark bg persists */}
       <div id={OVERLAY_ID} style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        opacity: rolling ? 1 : 0, pointerEvents: rolling ? 'auto' : 'none',
-        background: rolling ? 'rgba(5,5,15,0.88)' : 'transparent', transition: 'opacity 0.3s',
+        opacity: (rolling || crit !== null) ? 1 : 0,
+        pointerEvents: rolling ? 'auto' : 'none',
+        background: (rolling || crit !== null) ? 'rgba(5,5,15,0.88)' : 'transparent',
+        transition: 'opacity 0.3s',
       }}>
         {rolling && (
           <p className="absolute bottom-10 left-1/2 -translate-x-1/2 font-display text-xl text-amber tracking-widest animate-pulse select-none">

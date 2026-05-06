@@ -49,6 +49,22 @@ function rollDice(dice: ParsedDice, sign: 1 | -1): RollTermResult {
   return { dice, rolls, kept, sign, subtotal: sign * keptSum };
 }
 
+// Critical = single die, no modifier/filter, rolled min (1) or max (sides)
+function detectCritical(result: RollResult): void {
+  const terms = result.terms;
+  if (
+    terms.length === 1 &&
+    terms[0].dice?.count === 1 &&
+    !terms[0].dice.modifier &&
+    !terms[0].dice.filter
+  ) {
+    const val   = terms[0].rolls![0];
+    const sides = terms[0].dice.sides;
+    if (val === sides) result.critical = 'success';
+    else if (val === 1) result.critical = 'failure';
+  }
+}
+
 function buildFormula(result: RollResult): string {
   return result.terms.map((t, idx) => {
     const prefix = idx === 0 ? (t.sign === -1 ? '-' : '') : (t.sign === -1 ? ' - ' : ' + ');
@@ -128,18 +144,7 @@ export function rollWithPrerolled(expression: string, prerolled: number[]): Roll
   const result: RollResult = { expression, formula: '', total, terms, timestamp: Date.now() };
   result.formula = buildFormula(result);
 
-  if (
-    terms.length === 1 &&
-    terms[0].dice?.sides === 20 &&
-    terms[0].dice.count === 1 &&
-    !terms[0].dice.modifier &&
-    !terms[0].dice.filter
-  ) {
-    const val = terms[0].rolls![0];
-    if (val === 20) result.critical = 'success';
-    else if (val === 1) result.critical = 'failure';
-  }
-
+  detectCritical(result);
   return result;
 }
 
@@ -158,19 +163,6 @@ export function roll(expression: string): RollResult {
   const total = terms.reduce((sum, t) => sum + t.subtotal, 0);
   const result: RollResult = { expression, formula: '', total, terms, timestamp: Date.now() };
   result.formula = buildFormula(result);
-
-  // Detect critical for single d20 rolls
-  if (
-    terms.length === 1 &&
-    terms[0].dice?.sides === 20 &&
-    terms[0].dice.count === 1 &&
-    !terms[0].dice.modifier &&
-    !terms[0].dice.filter
-  ) {
-    const val = terms[0].rolls![0];
-    if (val === 20) result.critical = 'success';
-    else if (val === 1) result.critical = 'failure';
-  }
-
+  detectCritical(result);
   return result;
 }
