@@ -309,13 +309,49 @@ export default function DiceRoller() {
             inset:          0,
             zIndex:         300,
             display:        'flex',
+            flexDirection:  'column',
             alignItems:     'center',
             justifyContent: 'center',
+            gap:            '1.5rem',
             pointerEvents:  'none',
             opacity:        crit.visible ? 1 : 0,
             transition:     'opacity 0.5s ease',
           }}
         >
+          <style>{`
+            @keyframes neon-flash {
+              0%, 100% { opacity: 1; }
+              45%       { opacity: 1; }
+              50%       { opacity: 0.05; }
+              55%       { opacity: 1; }
+            }
+            .crit-label {
+              font-family: 'serif';
+              font-size: 2.4rem;
+              font-weight: 900;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              animation: neon-flash 0.6s ease-in-out infinite;
+              user-select: none;
+            }
+            .crit-label-success {
+              color: #00ff41;
+              text-shadow:
+                0 0 8px #00ff41,
+                0 0 20px #00ff41,
+                0 0 45px #00cc33,
+                0 0 80px #00aa22;
+            }
+            .crit-label-failure {
+              color: #ff2244;
+              text-shadow:
+                0 0 8px #ff2244,
+                0 0 20px #ff2244,
+                0 0 45px #cc1133,
+                0 0 80px #aa0022;
+            }
+          `}</style>
+
           {/\.gif$/i.test(CRIT_SRCS[crit.type]) ? (
             <img
               src={CRIT_SRCS[crit.type]}
@@ -338,6 +374,10 @@ export default function DiceRoller() {
               <source src={CRIT_SRCS[crit.type]} />
             </video>
           )}
+
+          <p className={`crit-label crit-label-${crit.type}`}>
+            {crit.type === 'success' ? 'Critical Success!!!' : 'Critical Failure!!!'}
+          </p>
         </div>,
         document.body,
       )}

@@ -151,4 +151,73 @@ describe('DocumentsService', () => {
       await expect(service.delete('bad-id')).rejects.toThrow(NotFoundException);
     });
   });
+
+  // ── scene documents ───────────────────────────────────────────────────────
+
+  describe('scene documents', () => {
+    const sceneData = {
+      img: 'https://example.com/map.jpg',
+      width: 1024,
+      height: 768,
+      gridSize: 64,
+      gridType: 'square',
+      padding: 0,
+      backgroundColor: '#0a0a0f',
+      active: false,
+      tokens: [],
+    };
+
+    it('creates a scene document with the correct type and data', async () => {
+      await service.create('w-1', {
+        type: 'scene',
+        name: 'Dark Forest',
+        data: sceneData,
+      });
+
+      const { data } = prisma.document.create.mock.calls[0][0];
+      expect(data.type).toBe('scene');
+      expect(data.name).toBe('Dark Forest');
+      expect(data.data).toEqual(sceneData);
+    });
+
+    it('findAll with type=scene filters to scenes only', async () => {
+      await service.findAll('w-1', 'scene');
+
+      expect(prisma.document.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { worldId: 'w-1', type: 'scene' } }),
+      );
+    });
+
+    it('updates scene data when activating (active: true)', async () => {
+      const activated = { ...sceneData, active: true };
+      await service.update('doc-1', { data: activated });
+
+      const { data } = prisma.document.update.mock.calls[0][0];
+      expect(data.data).toEqual(activated);
+    });
+
+    it('stores img URL in the data payload', async () => {
+      const imgUrl = 'https://example.com/dungeon.jpg';
+      await service.create('w-1', {
+        type: 'scene',
+        name: 'Stone Dungeon',
+        data: { ...sceneData, img: imgUrl },
+      });
+
+      const { data } = prisma.document.create.mock.calls[0][0];
+      expect((data.data as Record<string, unknown>).img).toBe(imgUrl);
+    });
+
+    it('stores base64 image data URLs in the img field', async () => {
+      const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+      await service.create('w-1', {
+        type: 'scene',
+        name: 'Uploaded Map',
+        data: { ...sceneData, img: base64 },
+      });
+
+      const { data } = prisma.document.create.mock.calls[0][0];
+      expect((data.data as Record<string, unknown>).img).toBe(base64);
+    });
+  });
 });

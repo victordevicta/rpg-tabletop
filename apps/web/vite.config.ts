@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
@@ -11,6 +11,12 @@ export default defineConfig({
       '@eldertable/rules-engine': resolve(__dirname, '../../packages/rules-engine/src/index.ts'),
       '@eldertable/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    exclude: ['node_modules', 'dist'],
   },
   server: {
     port: 5173,

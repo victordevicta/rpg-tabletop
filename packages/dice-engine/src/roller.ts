@@ -49,18 +49,18 @@ function rollDice(dice: ParsedDice, sign: 1 | -1): RollTermResult {
   return { dice, rolls, kept, sign, subtotal: sign * keptSum };
 }
 
-// Critical = single die, no modifier/filter, rolled min (1) or max (sides)
+// Critical = single d20, no modifier/filter, rolled 1 or 20
 function detectCritical(result: RollResult): void {
   const terms = result.terms;
   if (
     terms.length === 1 &&
-    terms[0].dice?.count === 1 &&
+    terms[0].dice?.sides === 20 &&
+    terms[0].dice.count === 1 &&
     !terms[0].dice.modifier &&
     !terms[0].dice.filter
   ) {
-    const val   = terms[0].rolls![0];
-    const sides = terms[0].dice.sides;
-    if (val === sides) result.critical = 'success';
+    const val = terms[0].rolls![0];
+    if (val === 20) result.critical = 'success';
     else if (val === 1) result.critical = 'failure';
   }
 }

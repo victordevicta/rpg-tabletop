@@ -42,6 +42,7 @@ interface TableState {
   worldId: string | null;
   worldName: string;
   activeSceneId: string | null;
+  activeSceneImg: string | null;
   tokens: Token[];
   chatMessages: ChatMessage[];
   rollLog: RollEntry[];
@@ -53,6 +54,7 @@ interface TableState {
 
   setWorld: (id: string, name: string) => void;
   setRightPanel: (panel: TableState['rightPanel']) => void;
+  setActiveScene: (id: string | null, img: string | null) => void;
   addChatMessage: (msg: ChatMessage) => void;
   addRollEntry: (entry: RollEntry) => void;
   moveToken: (id: string, x: number, y: number) => void;
@@ -74,6 +76,7 @@ export const useTableStore = create<TableState>((set, get) => ({
   worldId: null,
   worldName: '',
   activeSceneId: null,
+  activeSceneImg: null,
   tokens: MOCK_TOKENS,
   chatMessages: [],
   rollLog: [],
@@ -85,6 +88,7 @@ export const useTableStore = create<TableState>((set, get) => ({
 
   setWorld: (id, name) => set({ worldId: id, worldName: name }),
   setRightPanel: (panel) => set({ rightPanel: panel }),
+  setActiveScene: (id, img) => set({ activeSceneId: id, activeSceneImg: img }),
 
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages.slice(-199), msg] })),

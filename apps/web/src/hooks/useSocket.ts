@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { connectSocket, disconnectSocket, getSocket } from '../lib/socket';
 import { useTableStore } from '../store/useTableStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { api } from '../lib/api';
 import type { Socket } from 'socket.io-client';
 import type { ClientToServerEvents, ServerToClientEvents } from '@eldertable/shared';
 
@@ -11,6 +12,7 @@ export function useSocket(worldId: string | null) {
   const addMessage = useTableStore((s) => s.addChatMessage);
   const addRoll = useTableStore((s) => s.addRollEntry);
   const moveToken = useTableStore((s) => s.moveToken);
+  const setActiveScene = useTableStore((s) => s.setActiveScene);
   const addUser = useTableStore((s) => s.addConnectedUser);
   const removeUser = useTableStore((s) => s.removeConnectedUser);
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
@@ -60,6 +62,13 @@ export function useSocket(worldId: string | null) {
       moveToken(payload.tokenId, payload.x, payload.y);
     });
 
+    socket.on('scene:activate', async (payload) => {
+      try {
+        const { data } = await api.get(`/api/worlds/${payload.worldId}/documents/${payload.sceneId}`);
+        setActiveScene(payload.sceneId, (data.data?.img as string) ?? null);
+      } catch {}
+    });
+
     socket.on('world:userJoined', (payload) => addUser(payload.userId));
     socket.on('world:userLeft', (payload) => removeUser(payload.userId));
 
@@ -69,6 +78,7 @@ export function useSocket(worldId: string | null) {
       socket.off('roll:create');
       socket.off('discord:roll-received');
       socket.off('token:move');
+      socket.off('scene:activate');
       socket.off('world:userJoined');
       socket.off('world:userLeft');
     };

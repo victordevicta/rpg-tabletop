@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTableStore } from '../../store/useTableStore';
 import PlaylistPanel from '../playlist/PlaylistPanel';
+import ScenePanel from '../scenes/ScenePanel';
 
 interface SidebarSection {
   id: string;
@@ -84,9 +85,11 @@ export default function Sidebar() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <div className={section.type === 'playlist' ? 'px-2 py-1' : 'pl-6 pr-2 py-1 space-y-0.5'}>
+                  <div className={section.type === 'playlist' || section.type === 'scene' ? 'px-2 py-1' : 'pl-6 pr-2 py-1 space-y-0.5'}>
                     {section.type === 'playlist' ? (
                       <PlaylistPanel />
+                    ) : section.type === 'scene' ? (
+                      <ScenePanel />
                     ) : (
                       <>
                         {(MOCK_DATA[section.type] ?? []).map((item) => (

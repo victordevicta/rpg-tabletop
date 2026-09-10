@@ -9,7 +9,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "youtube"],
+    "types": ["vite/client", "youtube", "vitest/globals"],
     "paths": {
       "@eldertable/shared": ["../../packages/shared/src"],
       "@eldertable/dice-engine": ["../../packages/dice-engine/src"],
